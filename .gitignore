@@ -1,0 +1,39 @@
+# Python bytecode / cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+env.bak/
+venv.bak/
+.venv.bak/
+
+# IDE settings
+.vscode/
+.idea/
+
+# Secrets / env files
+.env
+*.env.*
+*.env
+!*.env.example
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+
+# Project-specific generated output
+generated_reports/
+mcp_reporter_app/temp_downloaded_images/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
