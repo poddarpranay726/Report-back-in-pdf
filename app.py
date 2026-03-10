@@ -12,8 +12,8 @@ from mcp.types import (
 )  # Import CallToolResult for type checking
 
 # Configuration for the MCP Server
-MCP_SERVER_BASE_URL = "http://localhost:8000"
-MCP_SERVER_MCP_ENDPOINT = f"{MCP_SERVER_BASE_URL}/mcp"
+MCP_SERVER_BASE_URL = os.getenv("MCP_SERVER_BASE_URL", "http://localhost:8000")
+MCP_SERVER_MCP_ENDPOINT = f"{MCP_SERVER_BASE_URL.rstrip('/')}/mcp"
 
 
 # --- Core Logic Function ---
