@@ -46,6 +46,8 @@ else:
         "WARNING: GROQ_API_KEY not found in .env file. Groq dependent tools will fail."
     )
 
+# --- UNSPLASH CLIENT INITIALIZATION ---
+UNSPLASH_ACCESS_KEY = os.getenv("UNSPLASH_ACCESS_KEY")
 
 class ReportPDF(FPDF):
     def __init__(self, *args, **kwargs):
@@ -129,48 +131,45 @@ async def search_web_for_topic(topic: str, num_results: int = 5) -> str:
 
 
 async def find_image_urls_for_topic(topic: str, num_images: int = 3) -> list[dict]:
+    """
+    Find image URLs for a topic using Unsplash API instead of DuckDuckGo.
+    Returns a list of dicts: [{"url": ..., "title": ...}, ...]
+    """
     print(
-        f"[Tool: find_image_urls_for_topic] Searching for {num_images} images for: '{topic}'"
+        f"[Tool: find_image_urls_for_topic] Searching for {num_images} images for: '{topic}' via Unsplash"
     )
-    image_info_list = []
+    if not UNSPLASH_ACCESS_KEY:
+        print("[Tool: find_image_urls_for_topic] UNSPLASH_ACCESS_KEY not set. Returning no images.")
+        return []
     try:
-        with DDGS() as ddgs:
-            ddgs_image_gen = ddgs.images(
-                keywords=topic,
-                max_results=num_images + 5,
+        resp = requests.get(
+            "https://api.unsplash.com/search/photos",
+            params={"query": topic, "per_page": num_images},
+            headers={"Authorization": f"Client-ID {UNSPLASH_ACCESS_KEY}"},
+            timeout=15,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        results = data.get("results", [])
+        images: list[dict] = []
+        for item in results[:num_images]:
+            url = item.get("urls", {}).get("regular")
+            title = item.get("description") or item.get("alt_description") or topic
+            if url:
+                images.append({"url": url, "title": title})
+                print(
+                    f"[Tool: find_image_urls_for_topic] Found: {title[:50]}... URL: {url[:60]}..."
+                )
+        if not images:
+            print(
+                f"[Tool: find_image_urls_for_topic] No images returned from Unsplash for '{topic}'."
             )
-            if not ddgs_image_gen:
-                print(
-                    f"[Tool: find_image_urls_for_topic] No image generator for '{topic}'."
-                )
-                return []
-            count = 0
-            for img_result in ddgs_image_gen:
-                if count >= num_images:
-                    break
-                if img_result and "image" in img_result and "title" in img_result:
-                    image_url = img_result["image"]
-                    image_title = img_result["title"]
-                    # Accept URLs that start with http (don't filter by extension - let download handle it)
-                    if image_url.startswith("http"):
-                        image_info_list.append({"url": image_url, "title": image_title})
-                        print(
-                            f"[Tool: find_image_urls_for_topic] Found: {image_title[:50]}... URL: {image_url[:60]}..."
-                        )
-                        count += 1
-                    else:
-                        print(
-                            f"[Tool: find_image_urls_for_topic] Skipping invalid URL (not http): {image_url}"
-                        )
-            if not image_info_list:
-                print(
-                    f"[Tool: find_image_urls_for_topic] No suitable image URLs found for '{topic}'."
-                )
+        return images
     except Exception as e:
         print(
-            f"[Tool: find_image_urls_for_topic] Error searching images for '{topic}': {e}"
+            f"[Tool: find_image_urls_for_topic] Error searching images for '{topic}' via Unsplash: {e}"
         )
-    return image_info_list[:num_images]
+        return []
 
 
 async def download_images(image_data_list: list[dict]) -> list[dict]:
