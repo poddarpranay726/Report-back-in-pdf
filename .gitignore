@@ -1,0 +1,25 @@
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Python virtual environment
+venv/
+.venv/
+
+# Python cache files
+__pycache__/
+*.py[cod]
+
+# Generated PDF reports
+generated_reports/
+
+# Downloaded temporary images
+mcp_reporter_app/temp_downloaded_images/
+
+# IDE files
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
