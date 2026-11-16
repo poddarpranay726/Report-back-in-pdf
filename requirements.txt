@@ -1,0 +1,10 @@
+gradio
+mcp==1.9.3
+fpdf2
+Pillow
+duckduckgo-search
+openai
+python-dotenv
+requests
+uvicorn
+fastapi
